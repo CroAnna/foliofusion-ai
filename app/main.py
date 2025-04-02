@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from groq import Groq
 from dotenv import load_dotenv 
@@ -14,10 +15,28 @@ client = Groq(api_key=GROQ_API_KEY)
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 class TextRequest(BaseModel):
     text: str
 
-@app.post("/enhance-text")
+class HealthCheck(BaseModel):
+    status: str = "OK"
+
+@app.get("/health", tags=["healthcheck"], summary="Perform a health check",)
+async def health_check():
+    """
+    Endpoint to perform a health check on.
+    """
+    return HealthCheck(status="OK")
+
+@app.post("/enhance-text", summary="AI endpoints",)
 async def enhance_text(request: TextRequest):
     """
     Enhance the grammar and clarity of the given text using professional IT language.

@@ -2,9 +2,9 @@
 
 This is an AI server for the FolioFusion web app.
 
-Built using FastAPI & Groq with Python 3.12.3.
+Built using FastAPI & Groq with Python 3.12.3. Deployed on Railway.
 
-[![My Skills](https://go-skill-icons.vercel.app/api/icons?i=python,fastapi,groq)](https://skillicons.dev)
+[![My Skills](https://go-skill-icons.vercel.app/api/icons?i=python,fastapi,groq,railway)](https://skillicons.dev)
 
 ## How to start?
 
@@ -38,4 +38,6 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
-documentation is available on `http://127.0.0.1:8000/docs`
+The application is available on `http://localhost:8000`
+
+> **_NOTE:_** documentation is available on `http://localhost:8000/docs`
