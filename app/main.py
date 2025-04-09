@@ -1,9 +1,11 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from groq import Groq
 from dotenv import load_dotenv 
 import os
+from .auth import get_and_validate_current_user
 
 load_dotenv()
 
@@ -14,6 +16,8 @@ if not GROQ_API_KEY:
 client = Groq(api_key=GROQ_API_KEY)
 
 app = FastAPI()
+
+auth_scheme  = HTTPBearer()
 
 app.add_middleware(
     CORSMiddleware,
@@ -37,36 +41,38 @@ async def health_check():
     return HealthCheck(status="OK")
 
 @app.post("/enhance-text", summary="AI endpoints",)
-async def enhance_text(request: TextRequest):
+async def enhance_text(request: Request, body: TextRequest, credentials: HTTPAuthorizationCredentials = Depends(auth_scheme)):
     """
     Enhance the grammar and clarity of the given text using professional IT language.
     """
-    user_input = request.text
-    if len(user_input.split())>100:
-        raise HTTPException(status_code=400, detail="Input text exceeds the maximum limit of 100 words.")
+    auth_header = request.headers.get("authorization")
+    get_and_validate_current_user(auth_header)
     
+    user_input = body.text
+    if len(user_input.split()) > 100:
+        raise HTTPException(status_code=400, detail="Input text exceeds the maximum limit of 100 words.")
+   
     try:
-        conversation=client.chat.completions.create(
+        conversation = client.chat.completions.create(
             messages=[  
                 {
-                    "role":"system",
-                    "content":"You are a helpful assistant that improves grammar and clarity. Provide a concise and professional rewrite of the user's input without explanations or additional commentary.",
+                    "role": "system",
+                    "content": "You are a helpful assistant that improves grammar and clarity. Provide a concise and professional rewrite of the user's input without explanations or additional commentary.",
                 },
                 {
-                    "role":"user",
-                    "content":user_input,
+                    "role": "user",
+                    "content": user_input,
                 }
             ],
-            model="llama-3.1-8b-instant", 
+            model="llama-3.1-8b-instant",
             max_completion_tokens=500,
             temperature=0.8, # more creative
         )
-        generated_text=conversation.choices[0].message.content
+        generated_text = conversation.choices[0].message.content
         print(generated_text)
         return {
-            "original":user_input,
-            "enhanced":generated_text,
+            "original": user_input,
+            "enhanced": generated_text,
         }
-
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
