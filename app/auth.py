@@ -7,7 +7,7 @@ def verify_jwt(token: str):
     Verify JWT token and return payload if valid
     """
     try:
-        SUPABASE_JWT_SECRET = os.getenv("SUPABASE_JWT_SECRET")
+        SUPABASE_JWT_SECRET = os.environ.get("SUPABASE_JWT_SECRET")
         payload = jwt.decode(token, SUPABASE_JWT_SECRET, algorithms=["HS256"], audience="authenticated")
         return payload
     except JWTError as e:

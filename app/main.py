@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from groq import Groq
 from dotenv import load_dotenv 
 import os
-from .auth import get_and_validate_current_user
+from app.auth import get_and_validate_current_user
 
 load_dotenv()
 
